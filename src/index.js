@@ -3,7 +3,7 @@ import { PixabayAPI } from './pixabay-api';
 
 import SimpleLightbox from 'simplelightbox';
 
-import "simplelightbox/dist/simple-lightbox.min.css";
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const searchFormEl = document.querySelector('.search-form');
 const galleryEl = document.querySelector('.gallery');
@@ -16,11 +16,15 @@ searchFormEl.addEventListener('submit', handleSubmitForm);
 async function handleSubmitForm(e) {
   e.preventDefault();
 
-  const searchquery = e.currentTarget.elements.searchQuery.value;
+  const searchquery = e.currentTarget.elements.searchQuery.value.trim();
   PixabayApi.query = searchquery;
   PixabayApi.page = 1;
 
   console.log(searchquery);
+
+  if (searchquery === '') {
+    return;
+  }
 
   try {
     const { data } = await PixabayApi.getPictures();
@@ -31,6 +35,7 @@ async function handleSubmitForm(e) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
+      galleryEl.innerHTML = '';
       return;
     }
 
@@ -49,7 +54,6 @@ async function handleSubmitForm(e) {
   }
 }
 
-
 loadMoreBtnEl.addEventListener('click', handleLoadMoreBtnClick);
 
 async function handleLoadMoreBtnClick(e) {
@@ -58,7 +62,7 @@ async function handleLoadMoreBtnClick(e) {
   try {
     const { data } = await PixabayApi.getPictures();
 
-    if (PixabayApi.page === data.totalHits / 40) {
+    if (PixabayApi.page > data.totalHits / 40) {
       loadMoreBtnEl.classList.add('is-hidden');
       Notiflix.Notify.info(
         "We're sorry, but you've reached the end of search results."
@@ -70,12 +74,9 @@ async function handleLoadMoreBtnClick(e) {
       lightbox.refresh();
     }
   } catch (err) {
-    Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
+    console.log(err);
   }
 }
-
 
 function createGalleryItem(hits) {
   const markup = hits
