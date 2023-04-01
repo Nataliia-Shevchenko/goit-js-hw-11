@@ -34,9 +34,8 @@ ul {
     rgba(209, 14, 238, 1) 52%,
     rgba(255, 0, 112, 1) 100%
   );
- 
+
   text-align: center;
-  
 }
 .search-field {
   outline: unset;
@@ -81,7 +80,6 @@ ul {
   margin-top: 30px;
   box-shadow: 0 15px 10px #777;
   background-color: #facaee;
-
 }
 .photo-card img {
   width: 100%;
@@ -103,8 +101,6 @@ ul {
   line-height: 1.88;
   color: rgb(48, 1, 48);
   text-shadow: 2px 2px 4px #bbb0b0;
-  
-
 }
 .info-item {
   display: flex;
@@ -112,13 +108,12 @@ ul {
   text-align: center;
 }
 
-.load-more{
+.load-more {
   display: block;
-  margin: 0 auto;
+  margin: 0 auto 30px;
 }
 
 .load-more.is-hidden {
-  
   display: none;
 }
 

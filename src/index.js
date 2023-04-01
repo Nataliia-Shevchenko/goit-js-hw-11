@@ -20,8 +20,6 @@ async function handleSubmitForm(e) {
   PixabayApi.query = searchquery;
   PixabayApi.page = 1;
 
-  console.log(searchquery);
-
   if (searchquery === '') {
     return;
   }
@@ -121,6 +119,6 @@ function createGalleryItem(hits) {
 }
 
 const lightbox = new SimpleLightbox('.gallery a', {
-  captionsData: 'alt',
+ 
   captionDelay: 250,
 });
