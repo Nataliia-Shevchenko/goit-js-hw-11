@@ -1,6 +1,9 @@
 import Notiflix from 'notiflix';
 import { PixabayAPI } from './pixabay-api';
-import axios from 'axios';
+
+import SimpleLightbox from 'simplelightbox';
+
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const searchFormEl = document.querySelector('.search-form');
 const galleryEl = document.querySelector('.gallery');
@@ -10,7 +13,7 @@ const PixabayApi = new PixabayAPI();
 
 searchFormEl.addEventListener('submit', handleSubmitForm);
 
-function handleSubmitForm(e) {
+async function handleSubmitForm(e) {
   e.preventDefault();
 
   const searchquery = e.currentTarget.elements.searchQuery.value;
@@ -19,64 +22,79 @@ function handleSubmitForm(e) {
 
   console.log(searchquery);
 
-  PixabayApi.getPictures()
-    .then(({ data }) => {
-      if (data.hits.length === 0) {
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        return;
-      }
-      console.dir(data.hits);
-      const totalPics = data.totalHits;
+  try {
+    const { data } = await PixabayApi.getPictures();
 
-      Notiflix.Notify.info('Hooray! We found `${totalPics}` images.');
-      
-      galleryEl.innerHTML = createGalleryItem(data.hits);
-      if (data.totalHits > 40) {
-        loadMoreBtnEl.classList.remove('is-hidden');
-      }
-    })
-    .catch(error => {
+    loadMoreBtnEl.classList.add('is-hidden');
+
+    if (data.hits.length === 0) {
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
-    });
+      return;
+    }
+
+    Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`);
+
+    galleryEl.innerHTML = createGalleryItem(data.hits);
+    lightbox.refresh();
+
+    if (data.totalHits > 40) {
+      loadMoreBtnEl.classList.remove('is-hidden');
+    }
+  } catch (err) {
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
 }
+
 
 loadMoreBtnEl.addEventListener('click', handleLoadMoreBtnClick);
 
-function handleLoadMoreBtnClick(e) {
+async function handleLoadMoreBtnClick(e) {
   PixabayApi.page += 1;
 
-  PixabayApi.getPictures()
-    .then(({ data }) => {
-      if (PixabayApi.page === data.totalHits / 40) {
-        loadMoreBtnEl.classList.add('is-hidden');
-        Notiflix.Notify.info(
-          "We're sorry, but you've reached the end of search results."
-        );
-        return;
-      }
-      if (data.totalHits > 40) {
-        galleryEl.insertAdjacentHTML('beforeend', createGalleryItem(data.hits));
-      }
-    })
-    .catch(error => {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
+  try {
+    const { data } = await PixabayApi.getPictures();
+
+    if (PixabayApi.page === data.totalHits / 40) {
+      loadMoreBtnEl.classList.add('is-hidden');
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
       );
-    });
+      return;
+    }
+    if (data.totalHits > 40) {
+      galleryEl.insertAdjacentHTML('beforeend', createGalleryItem(data.hits));
+      lightbox.refresh();
+    }
+  } catch (err) {
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
 }
 
-// /largeImageURL
 
 function createGalleryItem(hits) {
   const markup = hits
-    .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
-      return `
+    .map(
+      ({
+        webformatURL,
+        largeImageURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+        return `
+      
       <div class="photo-card">
+      <a href="${largeImageURL}">
       <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+      </a>
       <div class="info">
         <p class="info-item">
           <b>Likes ${likes}</b>
@@ -92,9 +110,16 @@ function createGalleryItem(hits) {
         </p>
       </div>
     </div>
+    
       `;
-    })
+      }
+    )
     .join('');
 
   return markup;
 }
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
