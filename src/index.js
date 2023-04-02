@@ -60,7 +60,7 @@ async function handleLoadMoreBtnClick(e) {
   try {
     const { data } = await PixabayApi.getPictures();
 
-    if (PixabayApi.page > data.totalHits / 40) {
+    if (PixabayApi.page === Math.ceil(data.totalHits / 40) + 1) {
       loadMoreBtnEl.classList.add('is-hidden');
       Notiflix.Notify.info(
         "We're sorry, but you've reached the end of search results."
